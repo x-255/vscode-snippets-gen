@@ -1,0 +1,7 @@
+@layer theme, base, antd, components, utilities;
+
+@import 'tailwindcss';
+
+body {
+  background-color: #303133;
+}

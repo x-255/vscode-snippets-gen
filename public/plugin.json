@@ -1,0 +1,14 @@
+{
+  "logo": "logo.png",
+  "main": "index.html",
+  "development": {
+    "main": "http://localhost:5173"
+  },
+  "features": [
+    {
+      "code": "gen",
+      "cmds": ["vscode snippets"],
+      "explain": "生成VSCode代码片段"
+    }
+  ]
+}

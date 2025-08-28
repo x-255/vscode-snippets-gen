@@ -51,7 +51,7 @@ export default function SnippetForm({ data, onChange }: SnippetFormProps) {
         mode="multiple"
         allowClear
         style={{ width: '100%' }}
-        placeholder="Please select"
+        placeholder="作用范围语言（为空表示所有语言）"
         onChange={(value) => handleInputChange('scope', value.join(','))}
         options={scopeOptions}
       />

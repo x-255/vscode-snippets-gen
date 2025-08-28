@@ -18,7 +18,7 @@ function App() {
         algorithm: theme.darkAlgorithm,
       }}
     >
-      <div className="container mx-auto h-screen">
+      <div className="h-screen">
         <Splitter className="shadow-xl">
           <Splitter.Panel defaultSize="50%" min="20%" max="70%">
             <SnippetForm data={snippetData} onChange={setSnippetData} />

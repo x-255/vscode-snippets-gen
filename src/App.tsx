@@ -7,7 +7,7 @@ function App() {
   const [snippetData, setSnippetData] = useState<SnippetData>({
     name: '',
     prefix: '',
-    scope: '',
+    scope: [],
     body: '',
     description: '',
   })

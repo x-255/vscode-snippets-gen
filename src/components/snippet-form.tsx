@@ -1,11 +1,13 @@
+import Editor from '@monaco-editor/react'
 import { Input, Select } from 'antd'
+import { useEffect, useState } from 'react'
 import { scopeOptions } from '../data/scope-options'
-import TextArea from 'antd/es/input/TextArea'
+import { handleEditorDidMount, handleEditWillMount } from '../lib/monaco'
 
 export interface SnippetData {
   name: string
   prefix: string | string[]
-  scope: string
+  scope: string[]
   body: string
   description: string
 }
@@ -25,6 +27,22 @@ export default function SnippetForm({ data, onChange }: SnippetFormProps) {
       [field]: value,
     })
   }
+  const [language, setLanguage] = useState('plaintext')
+
+  
+
+  useEffect(() => {
+    const scope = data.scope
+    if (scope.length === 0) {
+      setLanguage('plaintext')
+      return
+    }
+
+    const lang = scopeOptions.find((item) => item.value === scope[0])
+    if (lang) {
+      setLanguage(lang.monacoCode ?? lang.value)
+    }
+  }, [data.scope])
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -52,21 +70,21 @@ export default function SnippetForm({ data, onChange }: SnippetFormProps) {
         allowClear
         style={{ width: '100%' }}
         placeholder="作用范围语言（为空表示所有语言）"
-        onChange={(value) => handleInputChange('scope', value.join(','))}
+        onChange={(value) => handleInputChange('scope', value)}
         options={scopeOptions}
       />
       <Input
         placeholder="描述"
         onChange={(e) => handleInputChange('description', e.target.value)}
       />
-      <TextArea
-        autoSize={{
-          minRows: 6,
-          maxRows: 12,
-        }}
+      <Editor
+        height="300px"
+        theme="vs-dark"
+        language={language}
         value={data.body}
-        placeholder="代码段(body)"
-        onChange={(e) => handleInputChange('body', e.target.value)}
+        onChange={(value) => handleInputChange('body', value ?? '')}
+        onMount={handleEditorDidMount}
+        beforeMount={handleEditWillMount}
       />
     </div>
   )

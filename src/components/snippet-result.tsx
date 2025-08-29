@@ -12,8 +12,8 @@ function snippetData2vscodeJson(data: SnippetData) {
   return {
     [name]: {
       prefix,
-      scope,
-      body: body.split('\n'),
+      scope: scope.join(','),
+      body: body.split(/\r?\n|\r/g),
       description: description || name,
     },
   }

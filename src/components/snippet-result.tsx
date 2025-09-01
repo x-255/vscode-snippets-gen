@@ -21,7 +21,7 @@ function snippetData2vscodeJson(data: SnippetData) {
 
 export default function SnippetResult({ data }: SnippetResultProps) {
   const formattedData = snippetData2vscodeJson(data)
-  const outputData = JSON.stringify(formattedData, null, 2)
+  const outputData = JSON.stringify(formattedData, null, 2).slice(1, -1)
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {

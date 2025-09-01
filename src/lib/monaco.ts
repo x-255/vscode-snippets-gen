@@ -64,165 +64,180 @@ function setSuggestions(monaco: Monaco) {
       monaco.languages.registerCompletionItemProvider(lang, {
         triggerCharacters: ['$'],
         provideCompletionItems: (model, position) => {
-          const word = model.getWordUntilPosition(position)
-          const range = {
-            startLineNumber: position.lineNumber,
-            endLineNumber: position.lineNumber,
-            startColumn: word.startColumn - 1,
-            endColumn: word.endColumn,
+          // 检查触发字符是否为 $
+          const lineContent = model.getLineContent(position.lineNumber)
+          const charBeforePosition =
+            position.column > 1 ? lineContent.charAt(position.column - 2) : null
+
+          // 只有当前一个字符是 $ 时才提供补全
+          if (charBeforePosition === '$') {
+            // 创建一个正确的范围，只包含触发字符 $
+            const range = {
+              startLineNumber: position.lineNumber,
+              endLineNumber: position.lineNumber,
+              startColumn: position.column - 1, // $ 的位置
+              endColumn: position.column, // 当前光标位置
+            }
+
+            const suggestions = [
+              {
+                label: '$1',
+                kind: monaco.languages.CompletionItemKind.Snippet,
+                insertText: '$1',
+                detail: '第一个占位符位置',
+                range: range,
+              },
+              {
+                label: '$2',
+                kind: monaco.languages.CompletionItemKind.Snippet,
+                insertText: '$2',
+                detail: '第二个占位符位置',
+                range: range,
+              },
+              {
+                label: '$0',
+                kind: monaco.languages.CompletionItemKind.Snippet,
+                insertText: '$0',
+                detail: '最终光标位置',
+                range: range,
+              },
+              {
+                label: '${1:placeholder}',
+                kind: monaco.languages.CompletionItemKind.Snippet,
+                insertText: '${1:placeholder}',
+                detail: '带默认值的占位符',
+                range: range,
+              },
+              {
+                label: '${1|one,two,three|}',
+                kind: monaco.languages.CompletionItemKind.Snippet,
+                insertText: '${1|one,two,three|}',
+                detail: '带选项的占位符',
+                range: range,
+              },
+              {
+                label: '$TM_SELECTED_TEXT',
+                kind: monaco.languages.CompletionItemKind.Variable,
+                insertText: '$TM_SELECTED_TEXT',
+                detail: '当前选中的文本',
+                range: range,
+              },
+              {
+                label: '$TM_CURRENT_LINE',
+                kind: monaco.languages.CompletionItemKind.Variable,
+                insertText: '$TM_CURRENT_LINE',
+                detail: '当前行的内容',
+                range: range,
+              },
+              {
+                label: '$TM_CURRENT_WORD',
+                kind: monaco.languages.CompletionItemKind.Variable,
+                insertText: '$TM_CURRENT_WORD',
+                detail: '当前单词',
+                range: range,
+              },
+              {
+                label: '$TM_LINE_INDEX',
+                kind: monaco.languages.CompletionItemKind.Variable,
+                insertText: '$TM_LINE_INDEX',
+                detail: '行号（从0开始）',
+                range: range,
+              },
+              {
+                label: '$TM_LINE_NUMBER',
+                kind: monaco.languages.CompletionItemKind.Variable,
+                insertText: '$TM_LINE_NUMBER',
+                detail: '行号（从1开始）',
+                range: range,
+              },
+              {
+                label: '$TM_FILENAME',
+                kind: monaco.languages.CompletionItemKind.Variable,
+                insertText: '$TM_FILENAME',
+                detail: '当前文件名',
+                range: range,
+              },
+              {
+                label: '$TM_FILENAME_BASE',
+                kind: monaco.languages.CompletionItemKind.Variable,
+                insertText: '$TM_FILENAME_BASE',
+                detail: '当前文件名（不含扩展名）',
+                range: range,
+              },
+              {
+                label: '$TM_DIRECTORY',
+                kind: monaco.languages.CompletionItemKind.Variable,
+                insertText: '$TM_DIRECTORY',
+                detail: '当前文件的目录名',
+                range: range,
+              },
+              {
+                label: '$TM_FILEPATH',
+                kind: monaco.languages.CompletionItemKind.Variable,
+                insertText: '$TM_FILEPATH',
+                detail: '当前文件的完整路径',
+                range: range,
+              },
+              {
+                label: '$CLIPBOARD',
+                kind: monaco.languages.CompletionItemKind.Variable,
+                insertText: '$CLIPBOARD',
+                detail: '剪贴板内容',
+                range: range,
+              },
+              {
+                label: '$WORKSPACE_NAME',
+                kind: monaco.languages.CompletionItemKind.Variable,
+                insertText: '$WORKSPACE_NAME',
+                detail: '工作区名称',
+                range: range,
+              },
+              {
+                label: '${1:/pascalcase}',
+                kind: monaco.languages.CompletionItemKind.Function,
+                insertText: '${1:/pascalcase}',
+                detail: '将文本转换为大驼峰',
+                range: range,
+              },
+              {
+                label: '${1:/camelcase}',
+                kind: monaco.languages.CompletionItemKind.Function,
+                insertText: '${1:/camelcase}',
+                detail: '将文本转换为小驼峰',
+                range: range,
+              },
+              {
+                label: '${1:/upcase}',
+                kind: monaco.languages.CompletionItemKind.Function,
+                insertText: '${1:/upcase}',
+                detail: '将文本转换为大写',
+                range: range,
+              },
+              {
+                label: '${1:/downcase}',
+                kind: monaco.languages.CompletionItemKind.Function,
+                insertText: '${1:/downcase}',
+                detail: '将文本转换为小写',
+                range: range,
+              },
+              {
+                label: 'capitalize',
+                kind: monaco.languages.CompletionItemKind.Function,
+                insertText: '${1:/capitalize}',
+                detail: '将文本转换为首字母大写',
+                range: range,
+              },
+            ]
+
+            // 更新每个建议项的范围
+            suggestions.forEach((suggestion) => {
+              suggestion.range = range
+            })
+
+            return { suggestions }
           }
 
-          const suggestions = [
-            {
-              label: '$1',
-              kind: monaco.languages.CompletionItemKind.Snippet,
-              insertText: '$1',
-              detail: '第一个占位符位置',
-              range: range,
-            },
-            {
-              label: '$2',
-              kind: monaco.languages.CompletionItemKind.Snippet,
-              insertText: '$2',
-              detail: '第二个占位符位置',
-              range: range,
-            },
-            {
-              label: '$0',
-              kind: monaco.languages.CompletionItemKind.Snippet,
-              insertText: '$0',
-              detail: '最终光标位置',
-              range: range,
-            },
-            {
-              label: '${1:placeholder}',
-              kind: monaco.languages.CompletionItemKind.Snippet,
-              insertText: '${1:placeholder}',
-              detail: '带默认值的占位符',
-              range: range,
-            },
-            {
-              label: '${1|one,two,three|}',
-              kind: monaco.languages.CompletionItemKind.Snippet,
-              insertText: '${1|one,two,three|}',
-              detail: '带选项的占位符',
-              range: range,
-            },
-            {
-              label: '$TM_SELECTED_TEXT',
-              kind: monaco.languages.CompletionItemKind.Variable,
-              insertText: '$TM_SELECTED_TEXT',
-              detail: '当前选中的文本',
-              range: range,
-            },
-            {
-              label: '$TM_CURRENT_LINE',
-              kind: monaco.languages.CompletionItemKind.Variable,
-              insertText: '$TM_CURRENT_LINE',
-              detail: '当前行的内容',
-              range: range,
-            },
-            {
-              label: '$TM_CURRENT_WORD',
-              kind: monaco.languages.CompletionItemKind.Variable,
-              insertText: '$TM_CURRENT_WORD',
-              detail: '当前单词',
-              range: range,
-            },
-            {
-              label: '$TM_LINE_INDEX',
-              kind: monaco.languages.CompletionItemKind.Variable,
-              insertText: '$TM_LINE_INDEX',
-              detail: '行号（从0开始）',
-              range: range,
-            },
-            {
-              label: '$TM_LINE_NUMBER',
-              kind: monaco.languages.CompletionItemKind.Variable,
-              insertText: '$TM_LINE_NUMBER',
-              detail: '行号（从1开始）',
-              range: range,
-            },
-            {
-              label: '$TM_FILENAME',
-              kind: monaco.languages.CompletionItemKind.Variable,
-              insertText: '$TM_FILENAME',
-              detail: '当前文件名',
-              range: range,
-            },
-            {
-              label: '$TM_FILENAME_BASE',
-              kind: monaco.languages.CompletionItemKind.Variable,
-              insertText: '$TM_FILENAME_BASE',
-              detail: '当前文件名（不含扩展名）',
-              range: range,
-            },
-            {
-              label: '$TM_DIRECTORY',
-              kind: monaco.languages.CompletionItemKind.Variable,
-              insertText: '$TM_DIRECTORY',
-              detail: '当前文件的目录名',
-              range: range,
-            },
-            {
-              label: '$TM_FILEPATH',
-              kind: monaco.languages.CompletionItemKind.Variable,
-              insertText: '$TM_FILEPATH',
-              detail: '当前文件的完整路径',
-              range: range,
-            },
-            {
-              label: '$CLIPBOARD',
-              kind: monaco.languages.CompletionItemKind.Variable,
-              insertText: '$CLIPBOARD',
-              detail: '剪贴板内容',
-              range: range,
-            },
-            {
-              label: '$WORKSPACE_NAME',
-              kind: monaco.languages.CompletionItemKind.Variable,
-              insertText: '$WORKSPACE_NAME',
-              detail: '工作区名称',
-              range: range,
-            },
-            {
-              label: '${1:/pascalcase}',
-              kind: monaco.languages.CompletionItemKind.Function,
-              insertText: '${1:/pascalcase}',
-              detail: '将文本转换为大驼峰',
-              range: range,
-            },
-            {
-              label: '${1:/camelcase}',
-              kind: monaco.languages.CompletionItemKind.Function,
-              insertText: '${1:/camelcase}',
-              detail: '将文本转换为小驼峰',
-              range: range,
-            },
-            {
-              label: '${1:/upcase}',
-              kind: monaco.languages.CompletionItemKind.Function,
-              insertText: '${1:/upcase}',
-              detail: '将文本转换为大写',
-              range: range,
-            },
-            {
-              label: '${1:/downcase}',
-              kind: monaco.languages.CompletionItemKind.Function,
-              insertText: '${1:/downcase}',
-              detail: '将文本转换为小写',
-              range: range,
-            },
-            {
-              label: 'capitalize',
-              kind: monaco.languages.CompletionItemKind.Function,
-              insertText: '${1:/capitalize}',
-              detail: '将文本转换为首字母大写',
-              range: range,
-            },
-          ]
-
-          return { suggestions }
+          return { suggestions: [] }
         },
       })
     })
@@ -233,8 +248,8 @@ let isSnippetThemeDefined = false
 
 function registerSnippetHighlighting(monaco: Monaco, language: string) {
   // 添加调试信息
-  console.log('Registering TokensProvider for language:', language);
-  
+  console.log('Registering TokensProvider for language:', language)
+
   // 注册自定义标记提供器
   monaco.languages.setTokensProvider(language, {
     getInitialState: () => new SnippetState(),

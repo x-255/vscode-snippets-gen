@@ -1,4 +1,5 @@
 import type { BeforeMount, Monaco, OnMount } from '@monaco-editor/react'
+import * as monaco from 'monaco-editor'
 import { scopeOptions } from '../data/scope-options'
 
 export const handleEditWillMount: BeforeMount = (monaco) => {
@@ -19,6 +20,9 @@ export const handleEditorDidMount: OnMount = (editor) => {
       []
     )
   }
+
+  // 在编辑器初始化后应用主题
+  monaco.editor.setTheme('snippetCustomTheme')
 }
 
 function setDiagnosticsOptions(monaco: Monaco) {
@@ -54,6 +58,9 @@ function setSuggestions(monaco: Monaco) {
       if (registeredLang.has(lang)) return
       registeredLang.add(lang)
 
+      // 为每种语言注册代码片段语法高亮
+      registerSnippetHighlighting(monaco, lang)
+
       monaco.languages.registerCompletionItemProvider(lang, {
         triggerCharacters: ['$'],
         provideCompletionItems: (model, position) => {
@@ -70,7 +77,7 @@ function setSuggestions(monaco: Monaco) {
               label: '$1',
               kind: monaco.languages.CompletionItemKind.Snippet,
               insertText: '$1',
-              detail: '第一个占位符位置', // 使用 detail 而不是 documentation
+              detail: '第一个占位符位置',
               range: range,
             },
             {
@@ -178,10 +185,213 @@ function setSuggestions(monaco: Monaco) {
               detail: '工作区名称',
               range: range,
             },
+            {
+              label: '${1:/pascalcase}',
+              kind: monaco.languages.CompletionItemKind.Function,
+              insertText: '${1:/pascalcase}',
+              detail: '将文本转换为大驼峰',
+              range: range,
+            },
+            {
+              label: '${1:/camelcase}',
+              kind: monaco.languages.CompletionItemKind.Function,
+              insertText: '${1:/camelcase}',
+              detail: '将文本转换为小驼峰',
+              range: range,
+            },
+            {
+              label: '${1:/upcase}',
+              kind: monaco.languages.CompletionItemKind.Function,
+              insertText: '${1:/upcase}',
+              detail: '将文本转换为大写',
+              range: range,
+            },
+            {
+              label: '${1:/downcase}',
+              kind: monaco.languages.CompletionItemKind.Function,
+              insertText: '${1:/downcase}',
+              detail: '将文本转换为小写',
+              range: range,
+            },
+            {
+              label: 'capitalize',
+              kind: monaco.languages.CompletionItemKind.Function,
+              insertText: '${1:/capitalize}',
+              detail: '将文本转换为首字母大写',
+              range: range,
+            },
           ]
 
           return { suggestions }
         },
       })
     })
+}
+
+// 在文件顶部添加一个标志变量
+let isSnippetThemeDefined = false
+
+function registerSnippetHighlighting(monaco: Monaco, language: string) {
+  // 添加调试信息
+  console.log('Registering TokensProvider for language:', language);
+  
+  // 注册自定义标记提供器
+  monaco.languages.setTokensProvider(language, {
+    getInitialState: () => new SnippetState(),
+    tokenize: (line, state) => {
+      return tokenizeSnippetSyntax(line, state as SnippetState)
+    },
+  })
+
+  // 使用标志变量而不是getThemes()
+  if (!isSnippetThemeDefined) {
+    // 只定义一次主题
+    monaco.editor.defineTheme('snippetCustomTheme', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [
+        { token: 'snippet.tabstop', foreground: 'ff0000', fontStyle: 'bold' }, // 红色
+        {
+          token: 'snippet.placeholder',
+          foreground: '00ff00',
+          fontStyle: 'italic',
+        }, // 绿色
+        { token: 'snippet.choice', foreground: '0000ff' }, // 蓝色
+        { token: 'snippet.variable', foreground: 'ffff00' }, // 黄色
+        { token: 'snippet.transform', foreground: 'ff00ff' }, // 紫色
+      ],
+      colors: {},
+    })
+
+    // 设置标志为true，表示主题已定义
+    isSnippetThemeDefined = true
+  }
+
+  // 应用主题（确保在编辑器初始化后）
+  monaco.editor.setTheme('snippetCustomTheme')
+}
+
+// 片段语法标记状态
+class SnippetState implements monaco.languages.IState {
+  constructor() {
+    /* 初始状态 */
+  }
+  clone() {
+    return new SnippetState()
+  }
+
+  public equals(other: monaco.languages.IState): boolean {
+    // 如果是同一个对象，肯定相等
+    if (this === other) {
+      return true
+    }
+
+    // 确保 other 也是 SnippetState 类型
+    if (!(other instanceof SnippetState)) {
+      return false
+    }
+
+    // 比较两个状态的相关属性
+    // 示例 (根据你的 SnippetState 类实际结构调整):
+    // return this.inSnippet === (other as SnippetState).inSnippet;
+
+    // 如果没有需要比较的状态属性，可以简单返回 true
+    return true
+  }
+}
+
+// 片段语法标记化函数
+// 修改片段语法标记化函数
+function tokenizeSnippetSyntax(line: string, state: SnippetState) {
+  // 创建所有匹配项的列表，记录开始索引、长度和类型
+  const allMatches: { index: number; length: number; scope: string }[] = []
+
+  // 收集所有匹配
+  collectMatches(line, /\$\d+/g, 'snippet.tabstop', allMatches) // $1, $2, $0
+  collectMatches(
+    line,
+    /\$\{\d+:([^}|/]+)\}/g, // 斜杠不需要转义
+    'snippet.placeholder',
+    allMatches
+  ) // ${1:placeholder}
+  collectMatches(line, /\$\{\d+\|[^}]+\|}/g, 'snippet.choice', allMatches) // ${1|one,two,three|}
+  collectMatches(line, /\$[A-Z_]+/g, 'snippet.variable', allMatches) // $TM_FILENAME 等
+  collectMatches(
+    line,
+    /\$\{\d+:?[^}]*\/[a-z]+\}/g, // 这里的斜杠需要转义，但会有警告
+    'snippet.transform',
+    allMatches
+  ) // ${1:/pascalcase} 等
+
+  // 按开始位置排序
+  allMatches.sort((a, b) => a.index - b.index)
+
+  // 创建最终的标记数组
+  const tokens: { startIndex: number; scopes: string }[] = []
+  let lastEndIndex = 0
+
+  // 处理每一个匹配项
+  for (const match of allMatches) {
+    // 如果匹配项之前有未标记的文本，添加默认标记
+    if (match.index > lastEndIndex) {
+      tokens.push({
+        startIndex: lastEndIndex,
+        scopes: 'text',
+      })
+    }
+
+    // 添加匹配项的标记
+    tokens.push({
+      startIndex: match.index,
+      scopes: match.scope,
+    })
+
+    lastEndIndex = match.index + match.length
+  }
+
+  // 处理最后一部分未标记的文本
+  if (lastEndIndex < line.length) {
+    tokens.push({
+      startIndex: lastEndIndex,
+      scopes: 'text',
+    })
+  }
+
+  // 如果没有任何标记，添加默认标记
+  if (tokens.length === 0) {
+    tokens.push({
+      startIndex: 0,
+      scopes: 'text',
+    })
+  }
+
+  // 添加调试信息
+  console.log('Tokenizing line:', line)
+
+  // 现有代码...
+
+  // 输出生成的tokens
+  console.log('Generated tokens:', tokens)
+
+  return { tokens, endState: state }
+}
+
+// 辅助函数：收集所有匹配项
+function collectMatches(
+  line: string,
+  regex: RegExp,
+  scope: string,
+  matches: { index: number; length: number; scope: string }[]
+) {
+  let match
+  // 重置正则表达式以确保从头开始匹配
+  regex.lastIndex = 0
+
+  while ((match = regex.exec(line)) !== null) {
+    matches.push({
+      index: match.index,
+      length: match[0].length,
+      scope: scope,
+    })
+  }
 }

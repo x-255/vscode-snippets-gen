@@ -29,8 +29,6 @@ export default function SnippetForm({ data, onChange }: SnippetFormProps) {
   }
   const [language, setLanguage] = useState('plaintext')
 
-  
-
   useEffect(() => {
     const scope = data.scope
     if (scope.length === 0) {
@@ -79,7 +77,7 @@ export default function SnippetForm({ data, onChange }: SnippetFormProps) {
       />
       <Editor
         height="300px"
-        theme="vs-dark"
+        theme="snippetCustomTheme"
         language={language}
         value={data.body}
         onChange={(value) => handleInputChange('body', value ?? '')}

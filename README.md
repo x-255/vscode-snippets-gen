@@ -1,11 +1,70 @@
-# React + TypeScript + Vite
+# VSCode 代码段生成器
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+一个用于生成 VSCode 代码段配置的 React 应用程序。
 
-Currently, two official plugins are available:
+## 功能特性
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🎯 直观的表单界面，轻松创建代码段
+- 🎨 Monaco 编辑器支持，提供语法高亮
+- 📋 一键复制生成的 VSCode 代码段配置
+- 🌍 支持多种编程语言作用范围
+- ⚡ 实时预览生成的 JSON 格式
+
+## 开发
+
+### 安装依赖
+
+```bash
+pnpm install
+```
+
+### 启动开发服务器
+
+```bash
+pnpm dev
+```
+
+### 构建生产版本
+
+```bash
+pnpm build
+```
+
+## 测试
+
+项目使用 Vitest 和 React Testing Library 进行测试。
+
+### 运行测试
+
+```bash
+# 运行所有测试
+pnpm test
+
+# 监视模式
+pnpm vitest
+
+# 生成覆盖率报告
+pnpm coverage
+```
+
+### 测试覆盖率
+
+当前测试覆盖了：
+
+- ✅ 数据转换函数 (100% 覆盖率)
+- ✅ 作用范围配置数据 (100% 覆盖率)
+- ✅ 核心业务逻辑测试
+
+详细的测试指南请参考 [docs/testing-guide.md](docs/testing-guide.md)。
+
+## 技术栈
+
+- **框架**: React 19 + TypeScript
+- **构建工具**: Vite
+- **UI 组件**: Ant Design
+- **代码编辑器**: Monaco Editor
+- **样式**: Tailwind CSS
+- **测试**: Vitest + React Testing Library
 
 ## Expanding the ESLint configuration
 

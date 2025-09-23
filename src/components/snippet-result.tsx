@@ -14,9 +14,14 @@ export default function SnippetResult({ data }: SnippetResultProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(outputData)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2500)
+    try {
+      await navigator.clipboard.writeText(outputData)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2500)
+    } catch (error) {
+      // Handle clipboard write failure gracefully
+      console.error('Failed to copy to clipboard:', error)
+    }
   }
 
   return (

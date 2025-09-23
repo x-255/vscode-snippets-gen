@@ -47,10 +47,14 @@ export default function SnippetForm({ data, onChange }: SnippetFormProps) {
       <div className="flex gap-2">
         <Input
           placeholder="片段名"
+          value={data.name}
           onChange={(e) => handleInputChange('name', e.target.value)}
         />
         <Input
           placeholder="触发词（多个用逗号分隔）"
+          value={
+            Array.isArray(data.prefix) ? data.prefix.join(', ') : data.prefix
+          }
           onChange={(e) => {
             if (e.target.value.includes(',')) {
               handleInputChange(
@@ -68,11 +72,13 @@ export default function SnippetForm({ data, onChange }: SnippetFormProps) {
         allowClear
         style={{ width: '100%' }}
         placeholder="作用范围语言（为空表示所有语言）"
+        value={data.scope}
         onChange={(value) => handleInputChange('scope', value)}
         options={scopeOptions}
       />
       <Input
         placeholder="描述"
+        value={data.description}
         onChange={(e) => handleInputChange('description', e.target.value)}
       />
       <Editor

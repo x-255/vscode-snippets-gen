@@ -2,26 +2,15 @@ import { Button } from 'antd'
 import type { SnippetData } from './snippet-form'
 import { CheckOutlined } from '@ant-design/icons'
 import { useState } from 'react'
+import { snippetData2vscodeJson } from '../lib/data-transform'
 
 interface SnippetResultProps {
   data: SnippetData
 }
 
-function snippetData2vscodeJson(data: SnippetData) {
-  const { name, body, prefix, scope, description } = data
-  return {
-    [name]: {
-      prefix,
-      scope: scope.join(','),
-      body: body.split(/\r?\n|\r/g),
-      description: description || name,
-    },
-  }
-}
-
 export default function SnippetResult({ data }: SnippetResultProps) {
   const formattedData = snippetData2vscodeJson(data)
-  const outputData = JSON.stringify(formattedData, null, 2).slice(1, -1)
+  const outputData = JSON.stringify(formattedData, null, 2).slice(1, -1).trim()
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {

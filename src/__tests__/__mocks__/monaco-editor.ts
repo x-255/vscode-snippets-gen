@@ -1,17 +1,21 @@
-import { vi, type MockedFunction } from 'vitest'
+import { vi } from 'vitest'
 
-// Mock Monaco Editor
-export const mockEditor: {
-  getModel: MockedFunction<
-    () => { getAllDecorations: MockedFunction<() => unknown[]> }
-  >
-  deltaDecorations: MockedFunction<() => void>
-  setTheme: MockedFunction<() => void>
-  getValue: MockedFunction<() => string>
-  setValue: MockedFunction<() => void>
-  focus: MockedFunction<() => void>
-  dispose: MockedFunction<() => void>
-} = {
+// 这个文件提供可控的 Monaco Editor Mock 工具
+// 用于需要特殊 Monaco Editor 行为的测试
+
+// 定义编辑器 Mock 的类型
+interface MockEditor {
+  getModel: ReturnType<typeof vi.fn>
+  deltaDecorations: ReturnType<typeof vi.fn>
+  setTheme: ReturnType<typeof vi.fn>
+  getValue: ReturnType<typeof vi.fn>
+  setValue: ReturnType<typeof vi.fn>
+  focus: ReturnType<typeof vi.fn>
+  dispose: ReturnType<typeof vi.fn>
+}
+
+// 创建默认的编辑器 Mock
+const createDefaultEditor = (): MockEditor => ({
   getModel: vi.fn().mockReturnValue({
     getAllDecorations: vi.fn().mockReturnValue([]),
   }),
@@ -21,98 +25,33 @@ export const mockEditor: {
   setValue: vi.fn(),
   focus: vi.fn(),
   dispose: vi.fn(),
-}
-
-export const mockMonaco: {
-  editor: {
-    create: MockedFunction<() => typeof mockEditor>
-    setTheme: MockedFunction<() => void>
-    defineTheme: MockedFunction<() => void>
-    getThemes: MockedFunction<() => unknown[]>
-  }
-  languages: {
-    typescript: {
-      typescriptDefaults: {
-        setDiagnosticsOptions: MockedFunction<() => void>
-        setCompilerOptions: MockedFunction<() => void>
-      }
-      javascriptDefaults: {
-        setDiagnosticsOptions: MockedFunction<() => void>
-        setCompilerOptions: MockedFunction<() => void>
-      }
-      JsxEmit: { React: number }
-      ScriptTarget: { ES2020: number }
-      ModuleKind: { ESNext: number }
-    }
-    setTokensProvider: MockedFunction<() => void>
-    registerCompletionItemProvider: MockedFunction<() => void>
-    CompletionItemKind: {
-      Snippet: number
-      Variable: number
-      Function: number
-    }
-  }
-} = {
-  editor: {
-    create: vi.fn().mockReturnValue(mockEditor),
-    setTheme: vi.fn(),
-    defineTheme: vi.fn(),
-    getThemes: vi.fn().mockReturnValue([]),
-  },
-  languages: {
-    typescript: {
-      typescriptDefaults: {
-        setDiagnosticsOptions: vi.fn(),
-        setCompilerOptions: vi.fn(),
-      },
-      javascriptDefaults: {
-        setDiagnosticsOptions: vi.fn(),
-        setCompilerOptions: vi.fn(),
-      },
-      JsxEmit: {
-        React: 1,
-      },
-      ScriptTarget: {
-        ES2020: 7,
-      },
-      ModuleKind: {
-        ESNext: 99,
-      },
-    },
-    setTokensProvider: vi.fn(),
-    registerCompletionItemProvider: vi.fn(),
-    CompletionItemKind: {
-      Snippet: 27,
-      Variable: 6,
-      Function: 3,
-    },
-  },
-}
-
-// Mock @monaco-editor/react
-const mockMonacoEditor: MockedFunction<
-  (props: {
-    onChange?: (value: string) => void
-    onMount?: (editor: typeof mockEditor, monaco: typeof mockMonaco) => void
-    beforeMount?: (monaco: typeof mockMonaco) => void
-    value?: string
-  }) => { type: string; props: { 'data-testid': string; className: string } }
-> = vi.fn().mockImplementation(({ onMount, beforeMount }) => {
-  // Simulate editor mount
-  if (beforeMount) {
-    beforeMount(mockMonaco)
-  }
-  if (onMount) {
-    onMount(mockEditor, mockMonaco)
-  }
-
-  return {
-    type: 'div',
-    props: {
-      'data-testid': 'monaco-editor',
-      className: 'monaco-editor',
-    },
-  }
 })
 
-export default mockMonacoEditor
+// 创建可自定义的编辑器 Mock
+export const createMockEditor = (
+  customBehavior?: Partial<MockEditor>
+): MockEditor => {
+  const defaultEditor = createDefaultEditor()
+  return { ...defaultEditor, ...customBehavior }
+}
+
+// 默认的编辑器 Mock 实例
+export const mockEditor = createDefaultEditor()
+
+// 用于测试编辑器内容变化的工具函数
+export const simulateEditorChange = (newValue: string) => {
+  mockEditor.getValue.mockReturnValue(newValue)
+}
+
+// 用于测试编辑器错误的工具函数
+export const simulateEditorError = (errorMessage: string) => {
+  mockEditor.getValue.mockImplementation(() => {
+    throw new Error(errorMessage)
+  })
+}
+
+// 重置所有 Mock 状态
+export const resetEditorMocks = () => {
+  vi.clearAllMocks()
+  mockEditor.getValue.mockReturnValue('')
+}

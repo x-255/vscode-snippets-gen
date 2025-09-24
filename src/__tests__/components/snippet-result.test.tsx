@@ -8,6 +8,7 @@ import {
   createMultiLineSnippetData,
   createArrayPrefixSnippetData,
 } from '../test-utils'
+import { setupClipboardMock, setupClipboardError } from '../__mocks__/clipboard'
 import SnippetResult from '../../components/snippet-result'
 
 describe('SnippetResult', () => {
@@ -15,8 +16,8 @@ describe('SnippetResult', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    // Reset clipboard mock - 直接重新设置模拟函数
-    navigator.clipboard.writeText = vi.fn().mockResolvedValue(undefined)
+    // 使用统一的剪贴板 Mock 设置
+    setupClipboardMock()
   })
 
   afterEach(() => {
@@ -111,10 +112,8 @@ describe('SnippetResult', () => {
   })
 
   it('should handle clipboard write failure gracefully', async () => {
-    // Mock clipboard to fail
-    navigator.clipboard.writeText = vi
-      .fn()
-      .mockRejectedValue(new Error('Clipboard access denied'))
+    // 使用统一的剪贴板错误 Mock
+    setupClipboardError('Clipboard access denied')
 
     const data = createMockSnippetData()
     render(<SnippetResult data={data} />)

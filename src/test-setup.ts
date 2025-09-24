@@ -77,15 +77,8 @@ vi.mock('@monaco-editor/react', () => ({
     }),
 }))
 
-// Mock navigator.clipboard
-Object.defineProperty(navigator, 'clipboard', {
-  value: {
-    writeText: vi.fn().mockResolvedValue(undefined),
-    readText: vi.fn().mockResolvedValue(''),
-  },
-  writable: true,
-  configurable: true,
-})
+// Mock navigator.clipboard - 使用 __mocks__/clipboard.ts 中的设置
+// 这里不再重复定义，让各个测试文件自己控制剪贴板行为
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {

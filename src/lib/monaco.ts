@@ -1,6 +1,8 @@
-import type { BeforeMount, Monaco, OnMount } from '@monaco-editor/react'
+import { BeforeMount, Monaco, OnMount, loader } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { scopeOptions } from '../data/scope-options'
+
+loader.config({ monaco })
 
 export const handleEditWillMount: BeforeMount = (monaco) => {
   setDiagnosticsOptions(monaco)
@@ -247,9 +249,6 @@ function setSuggestions(monaco: Monaco) {
 let isSnippetThemeDefined = false
 
 function registerSnippetHighlighting(monaco: Monaco, language: string) {
-  // 添加调试信息
-  console.log('Registering TokensProvider for language:', language)
-
   // 注册自定义标记提供器
   monaco.languages.setTokensProvider(language, {
     getInitialState: () => new SnippetState(),
@@ -379,14 +378,6 @@ function tokenizeSnippetSyntax(line: string, state: SnippetState) {
       scopes: 'text',
     })
   }
-
-  // 添加调试信息
-  console.log('Tokenizing line:', line)
-
-  // 现有代码...
-
-  // 输出生成的tokens
-  console.log('Generated tokens:', tokens)
 
   return { tokens, endState: state }
 }
